@@ -6,32 +6,32 @@ import { auth } from "@/lib/firebase";
 
 export default function HomePage() {
   return (
-    <main className="container">
-      <div className="card" style={{ padding: 22 }}>
-        <h1 style={{ margin: 0, fontSize: 28, letterSpacing: -0.5 }}>
-          Prft
-        </h1>
-        <p className="muted" style={{ marginTop: 8 }}>
+    <main className="container hero">
+      <div className="card" style={{ padding: 24 }}>
+        <h1 style={{ margin: 0, fontSize: 28 }}>PRFT</h1>
+        <p className="muted" style={{ marginTop: 6 }}>
           Track your flips. Know your profit.
         </p>
 
-        <div style={{ height: 14 }} />
+        <div style={{ height: 16 }} />
 
         <div className="row" style={{ justifyContent: "flex-start" }}>
-          <a href="/items">
-            <button>Open dashboard</button>
+          <a href="/signup">
+            <button className="primary">Sign up</button>
           </a>
-          <a href="/items/new">
-            <button>+ Add item</button>
+
+          <a href="/login">
+            <button>Log in</button>
           </a>
         </div>
 
-        <div style={{ height: 10 }} />
+        <div style={{ height: 12 }} />
 
         <div className="muted" style={{ fontSize: 14 }}>
-          Tip: Sign in on any device and your items stay synced.
+          Create an account to access your dashboard on any device.
         </div>
       </div>
     </main>
   );
 }
+

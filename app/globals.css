@@ -65,3 +65,10 @@ button:hover{ background:rgba(255,255,255,.08); }
 .danger:hover{
   background: rgba(255,107,107,.12);
 }
+.primary {
+  background: #4f7cff;
+  border-color: #4f7cff;
+}
+.primary:hover {
+  background: #6a92ff;
+}
