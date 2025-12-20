@@ -18,77 +18,101 @@ type Item = {
 
 export default function ItemsPage() {
   const router = useRouter();
+  const [authReady, setAuthReady] = useState(false);
   const [uid, setUid] = useState<string | null>(null);
   const [items, setItems] = useState<Item[]>([]);
 
-  useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, (u) => {
-      if (!u) router.push("/login");
-      setUid(u?.uid ?? null);
-    });
-    return () => unsubAuth();
-  }, [router]);
 
-  useEffect(() => {
-    if (!uid) return;
-    const q = query(
-  collection(db, "items"),
-  where("uid", "==", uid),
-  orderBy("createdAt", "desc")
-);
+useEffect(() => {
+  const unsub = onAuthStateChanged(auth, (u) => {
+    setUid(u?.uid ?? null);
+    setAuthReady(true);
+  });
+  return () => unsub();
+}, []);
 
+useEffect(() => {
+  if (!authReady) return;
+  if (!uid) router.push("/login");
+}, [authReady, uid, router]);
 
+useEffect(() => {
+  if (!authReady || !uid) return;
 
-    const unsub = onSnapshot(q, (snap) => {
-      setItems(
-        snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
-      );
-    });
+  const q = query(
+    collection(db, "items"),
+    where("uid", "==", uid),
+    orderBy("createdAt", "desc")
+  );
 
-    return () => unsub();
-  }, [uid]);
+  const unsub = onSnapshot(q, (snap) => {
+    setItems(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+  });
+
+  return () => unsub();
+}, [authReady, uid]);
+
 
   const totalProfit = useMemo(
     () => items.reduce((sum, it) => sum + (Number(it.profit) || 0), 0),
     [items]
   );
+return (
+  <main className="container">
+    <div className="stack">
+      <div className="row">
+        <div>
+          <h1 style={{ margin: 0 }}>Items PAGE TEST</h1>
+          <div className="muted">Total profit: {totalProfit}</div>
+        </div>
 
-  return (
-    <main style={{ padding: 40, maxWidth: 700 }}>
-      <h1>Items</h1>
-      <p>Total profit: <strong>{totalProfit}</strong></p>
+        <div className="row">
+          <a href="/items/new">+ Add item</a>
+          <a href="/">Home</a>
+        </div>
+      </div>
 
-      <p style={{ marginTop: 12 }}>
-        <a href="/items/new">+ Add item</a> · <a href="/">Home</a>
-      </p>
-
-      <div style={{ marginTop: 16, display: "grid", gap: 10 }}>
+      <div className="stack">
         {items.length === 0 ? (
           <p>No items yet.</p>
         ) : (
           items.map((it) => (
-            <div key={it.id} style={{ border: "1px solid #333", padding: 12, borderRadius: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                <strong>{it.name}</strong>
-                <Link href={`/items/${it.id}/edit`}>Edit</Link>
-                <button onClick={() => onDelete(it.id)}>
-  Delete
-</button>
-                <span>Profit: {it.profit}</span>
+            <div key={it.id} className="card">
+              <div className="row">
+                <div>
+                  <div style={{ fontWeight: 800 }}>{it.name}</div>
+                  <div className="muted">{it.platform ?? "-"}</div>
+                </div>
+
+                <div className="row">
+                  <div style={{ fontWeight: 900 }}>
+                    {it.profit >= 0 ? "+" : ""}
+                    {it.profit}
+                  </div>
+
+                  <a href={`/items/${it.id}/edit`}>
+                    <button>Edit</button>
+                  </a>
+
+                  <button onClick={() => onDelete(it.id)}>Delete</button>
+                </div>
               </div>
-              <div style={{ opacity: 0.8 }}>
-                Buy: {it.buy} · Sell: {it.sell} · {it.platform ?? "—"}
+
+              <div className="muted" style={{ marginTop: 10 }}>
+                Buy: {it.buy} · Sell: {it.sell}
               </div>
             </div>
           ))
         )}
       </div>
-    </main>
-  );
-}
+    </div>
+  </main>
+);
+
 async function onDelete(itemId: string) {
   const ok = confirm("Delete this item?");
   if (!ok) return;
 
   await deleteDoc(doc(db, "items", itemId));
+}
 }
