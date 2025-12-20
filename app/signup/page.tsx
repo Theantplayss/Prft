@@ -2,57 +2,51 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { useAuth } from "@/lib/useAuth";
 
 export default function SignupPage() {
   const router = useRouter();
+  const { authReady, uid } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const [authReady, setAuthReady] = useState(false);
-  const [uid, setUid] = useState<string | null>(null);
-
-  // Wait for firebase auth to initialize
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUid(u?.uid ?? null);
-      setAuthReady(true);
-    });
-    return () => unsub();
-  }, []);
-
-  // If already logged in, leave signup page
+  // If already logged in, leave signup
   useEffect(() => {
     if (!authReady) return;
-    if (uid) router.push("/items");
+    if (uid) router.replace("/items");
   }, [authReady, uid, router]);
 
   async function onSignup(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
+    setLoading(true);
 
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
 
-      // optional: create user profile doc
+      // user profile doc (requires rules for /users/{uid})
       await setDoc(doc(db, "users", cred.user.uid), {
         email: cred.user.email,
         plan: "free",
         createdAt: serverTimestamp(),
       });
 
-      router.push("/items");
+      router.replace("/items");
     } catch (e: any) {
       setErr(e?.code ? `${e.code}: ${e.message}` : "Signup failed");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <main className="container">
+    <main className="container hero">
       <div className="card" style={{ maxWidth: 420, margin: "0 auto" }}>
         <h1 style={{ marginTop: 0 }}>PRFT — Sign up</h1>
 
@@ -70,7 +64,9 @@ export default function SignupPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <button type="submit">Create account</button>
+          <button className="primary" disabled={loading} type="submit">
+            {loading ? "Creating..." : "Create account"}
+          </button>
 
           {err && <div className="muted">{err}</div>}
         </form>
@@ -78,7 +74,7 @@ export default function SignupPage() {
         <div style={{ height: 12 }} />
 
         <a href="/login">
-          <button>Already have an account? Log in</button>
+          <button type="button">Already have an account? Log in</button>
         </a>
       </div>
     </main>
