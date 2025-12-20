@@ -62,7 +62,7 @@ return (
     <div className="stack">
       <div className="row">
         <div>
-          <h1 style={{ margin: 0 }}>Items PAGE TEST</h1>
+          <h1 style={{ margin: 0 }}>Items</h1>
           <div className="muted">Total profit: {totalProfit}</div>
         </div>
 
