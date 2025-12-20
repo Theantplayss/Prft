@@ -35,14 +35,27 @@ button{ cursor:pointer; }
 button:hover{ background:rgba(255,255,255,.08); }
 
 /* Tiny utility classes we’ll reuse in pages */
-.container{ max-width:900px; margin:0 auto; padding:24px; }
+.container { max-width: 900px; margin: 0 auto; padding: 24px; }
+
 .card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
 }
-.muted{ color:var(--muted); }
-.row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
-.stack{ display:grid; gap:12px; }
+
+.muted { color: var(--muted); }
+
+.row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stack{
+  display: grid;
+  gap: 12px;
+}
+
 
