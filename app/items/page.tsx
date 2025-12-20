@@ -66,10 +66,10 @@ return (
           <div className="muted">Total profit: {totalProfit}</div>
         </div>
 
-        <div className="row">
-          <a href="/items/new">+ Add item</a>
-          <a href="/">Home</a>
-        </div>
+       <div className="row">
+  <a href="/items/new"><button>+ Add item</button></a>
+  <a href="/"><button>Home</button></a>
+</div>
       </div>
 
       <div className="stack">
@@ -85,16 +85,21 @@ return (
                 </div>
 
                 <div className="row">
-                  <div style={{ fontWeight: 900 }}>
-                    {it.profit >= 0 ? "+" : ""}
-                    {it.profit}
-                  </div>
+                 <div
+  style={{
+    fontWeight: 900,
+    fontSize: 18,
+    color: it.profit >= 0 ? "#35d07f" : "#ff6b6b",
+  }}
+>
+  {it.profit >= 0 ? "+" : ""}{it.profit}
+</div>
 
                   <a href={`/items/${it.id}/edit`}>
                     <button>Edit</button>
                   </a>
 
-                  <button onClick={() => onDelete(it.id)}>Delete</button>
+                  <button className="danger" onClick={() => onDelete(it.id)}>Delete</button>
                 </div>
               </div>
 
