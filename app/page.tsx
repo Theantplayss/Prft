@@ -4,32 +4,34 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
-export default function Home() {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
-    return () => unsub();
-  }, []);
-
+export default function HomePage() {
   return (
-    <main style={{ padding: 40 }}>
-      <h1>Prft</h1>
-      <p>Track your reselling profit.</p>
-
-      {user ? (
-        <>
-          <p>Logged in as <strong>{user.email}</strong></p>
-          <button onClick={() => signOut(auth)}>Logout</button>
-        <p style={{ marginTop: 12 }}>
-  <a href="/items">Go to items</a> · <a href="/items/new">Add item</a>
-</p>
-</>
-      ) : (
-        <p>
-          <a href="/signup">Sign up</a> · <a href="/login">Login</a>
+    <main className="container">
+      <div className="card" style={{ padding: 22 }}>
+        <h1 style={{ margin: 0, fontSize: 28, letterSpacing: -0.5 }}>
+          Prft
+        </h1>
+        <p className="muted" style={{ marginTop: 8 }}>
+          Track your flips. Know your profit.
         </p>
-      )}
+
+        <div style={{ height: 14 }} />
+
+        <div className="row" style={{ justifyContent: "flex-start" }}>
+          <a href="/items">
+            <button>Open dashboard</button>
+          </a>
+          <a href="/items/new">
+            <button>+ Add item</button>
+          </a>
+        </div>
+
+        <div style={{ height: 10 }} />
+
+        <div className="muted" style={{ fontSize: 14 }}>
+          Tip: Sign in on any device and your items stay synced.
+        </div>
+      </div>
     </main>
   );
 }
