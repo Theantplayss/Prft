@@ -108,9 +108,10 @@ export default function EditItemPage() {
           <input placeholder="Buy price" inputMode="decimal" value={buy} onChange={(e) => setBuy(e.target.value)} />
           <input placeholder="Sell price" inputMode="decimal" value={sell} onChange={(e) => setSell(e.target.value)} />
 
-          <input placeholder="Quantity" inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value)} />
-          <input placeholder="Shipping cost" inputMode="decimal" value={shippingCost} onChange={(e) => setShippingCost(e.target.value)} />
-          <input placeholder="Platform fee" inputMode="decimal" value={platformFee} onChange={(e) => setPlatformFee(e.target.value)} />
+         <input placeholder="Quantity (default 1)" inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value)} />
+<input placeholder="Shipping cost ($)" inputMode="decimal" value={shippingCost} onChange={(e) => setShippingCost(e.target.value)} />
+<input placeholder="Platform fee ($)" inputMode="decimal" value={platformFee} onChange={(e) => setPlatformFee(e.target.value)} />
+
 
           <select value={platform} onChange={(e) => setPlatform(e.target.value)}>
             <option value="ebay">eBay</option>
@@ -118,10 +119,16 @@ export default function EditItemPage() {
             <option value="offerup">OfferUp</option>
             <option value="other">Other</option>
           </select>
-
-          <div className="muted">
-            Profit: {profit.toLocaleString()}
-          </div>
+<div
+  style={{
+    fontWeight: 900,
+    fontSize: 18,
+    color: profit >= 0 ? "#35d07f" : "#ff6b6b",
+  }}
+>
+  Profit: {profit >= 0 ? "+" : ""}
+  {profit.toLocaleString()}
+</div>
 
           <button className="primary" disabled={loading}>
             {loading ? "Saving…" : "Save changes"}

@@ -90,9 +90,17 @@ export default function NewItemPage() {
             <option value="other">Other</option>
           </select>
 
-          <div className="muted">
-            Profit: {profit.toLocaleString()}
-          </div>
+          <div
+  style={{
+    fontWeight: 900,
+    fontSize: 18,
+    color: profit >= 0 ? "#35d07f" : "#ff6b6b",
+  }}
+>
+  Profit: {profit >= 0 ? "+" : ""}
+  {profit.toLocaleString()}
+</div>
+
 
           <button className="primary" disabled={loading}>
             {loading ? "Saving…" : "Save item"}
