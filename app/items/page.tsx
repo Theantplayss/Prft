@@ -54,7 +54,16 @@ export default function ItemsPage() {
   return (
     <main className="container">
       <h1>Items</h1>
-      <div className="muted">Total profit: {totalProfit.toLocaleString()}</div>
+      <div
+  style={{
+    fontWeight: 800,
+    color: totalProfit >= 0 ? "#35d07f" : "#ff6b6b",
+  }}
+>
+  Total profit: {totalProfit >= 0 ? "+" : ""}
+  {totalProfit.toLocaleString()}
+</div>
+
 
       <div className="stack" style={{ marginTop: 16 }}>
         {items.map(it => (
@@ -68,10 +77,17 @@ export default function ItemsPage() {
               </div>
 
               <div className="row">
-                <div style={{ fontWeight: 900 }}>
-                  {it.profit >= 0 ? "+" : ""}
-                  {it.profit.toLocaleString()}
-                </div>
+                <div
+  style={{
+    fontWeight: 900,
+    fontSize: 18,
+    color: (it.profit || 0) >= 0 ? "#35d07f" : "#ff6b6b",
+  }}
+>
+  {(it.profit || 0) >= 0 ? "+" : ""}
+  {(it.profit || 0).toLocaleString()}
+</div>
+
 
                 <a href={`/items/${it.id}/edit`}>
                   <button>Edit</button>
