@@ -94,23 +94,26 @@ export default function ItemsPage() {
                     <div style={{ fontWeight: 800 }}>{it.name}</div>
                     <div className="muted">{it.platform ?? "-"}</div>
                   </div>
+<div className="row" style={{ justifyContent: "flex-end" }}>
+  <div
+    style={{
+      fontWeight: 900,
+      fontSize: 18,
+      color: (Number(it.profit) || 0) >= 0 ? "#35d07f" : "#ff6b6b",
+    }}
+  >
+    {(Number(it.profit) || 0) >= 0 ? "+" : ""}
+    {it.profit}
+  </div>
 
-                  <div className="row" style={{ justifyContent: "flex-end" }}>
-                    <div
-                      style={{
-                        fontWeight: 900,
-                        fontSize: 18,
-                        color: (Number(it.profit) || 0) >= 0 ? "#35d07f" : "#ff6b6b",
-                      }}
-                    >
-                      {(Number(it.profit) || 0) >= 0 ? "+" : ""}
-                      {it.profit}
-                    </div>
+  <a href={`/items/${it.id}/edit`}>
+    <button>Edit</button>
+  </a>
 
-                    <button className="danger" onClick={() => onDelete(it.id)}>
-                      Delete
-                    </button>
-                  </div>
+  <button className="danger" onClick={() => onDelete(it.id)}>
+    Delete
+  </button>
+</div>
                 </div>
 
                 <div className="muted" style={{ marginTop: 10 }}>
