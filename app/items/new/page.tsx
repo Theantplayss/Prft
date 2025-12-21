@@ -13,11 +13,14 @@ export default function NewItemPage() {
   const [name, setName] = useState("");
   const [buy, setBuy] = useState("");
   const [sell, setSell] = useState("");
+  const [qty, setQty] = useState("1");
+  const [shippingCost, setShippingCost] = useState("0");
+  const [platformFee, setPlatformFee] = useState("0");
   const [platform, setPlatform] = useState("ebay");
+
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Protect page (do NOT redirect inside onAuthStateChanged)
   useEffect(() => {
     if (!authReady) return;
     if (!uid) router.replace("/login");
@@ -26,16 +29,19 @@ export default function NewItemPage() {
   const profit = useMemo(() => {
     const b = Number(buy || 0);
     const s = Number(sell || 0);
-    return s - b;
-  }, [buy, sell]);
+    const q = Number(qty || 1);
+    const ship = Number(shippingCost || 0);
+    const fee = Number(platformFee || 0);
+    return (s - b) * q - ship - fee;
+  }, [buy, sell, qty, shippingCost, platformFee]);
 
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
 
     if (!uid) return;
-    if (!name.trim()) return setErr("Name is required.");
-    if (!buy || !sell) return setErr("Buy and sell are required.");
+    if (!name.trim()) return setErr("Name is required");
+    if (!buy || !sell) return setErr("Buy and sell are required");
 
     setLoading(true);
     try {
@@ -44,14 +50,17 @@ export default function NewItemPage() {
         name: name.trim(),
         buy: Number(buy),
         sell: Number(sell),
+        qty: Number(qty || 1),
+        shippingCost: Number(shippingCost || 0),
+        platformFee: Number(platformFee || 0),
         platform,
-        profit: Number(sell) - Number(buy),
+        profit,
         createdAt: serverTimestamp(),
       });
 
       router.replace("/items");
     } catch (e: any) {
-      setErr(e?.code ? `${e.code}: ${e.message}` : "Failed to save");
+      setErr(e?.message ?? "Failed to save");
     } finally {
       setLoading(false);
     }
@@ -63,33 +72,16 @@ export default function NewItemPage() {
   return (
     <main className="container hero">
       <div className="card" style={{ maxWidth: 520, margin: "0 auto" }}>
-        <div className="row">
-          <h1 style={{ margin: 0 }}>Add item</h1>
-          <a href="/items"><button>Back</button></a>
-        </div>
-
-        <div style={{ height: 12 }} />
+        <h1>Add item</h1>
 
         <form onSubmit={onSave} className="stack">
-          <input
-            placeholder="Item name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <input placeholder="Item name" value={name} onChange={(e) => setName(e.target.value)} />
+          <input placeholder="Buy price" inputMode="decimal" value={buy} onChange={(e) => setBuy(e.target.value)} />
+          <input placeholder="Sell price" inputMode="decimal" value={sell} onChange={(e) => setSell(e.target.value)} />
 
-          <input
-            placeholder="Buy price"
-            inputMode="decimal"
-            value={buy}
-            onChange={(e) => setBuy(e.target.value)}
-          />
-
-          <input
-            placeholder="Sell price"
-            inputMode="decimal"
-            value={sell}
-            onChange={(e) => setSell(e.target.value)}
-          />
+          <input placeholder="Quantity" inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value)} />
+          <input placeholder="Shipping cost" inputMode="decimal" value={shippingCost} onChange={(e) => setShippingCost(e.target.value)} />
+          <input placeholder="Platform fee" inputMode="decimal" value={platformFee} onChange={(e) => setPlatformFee(e.target.value)} />
 
           <select value={platform} onChange={(e) => setPlatform(e.target.value)}>
             <option value="ebay">eBay</option>
@@ -98,10 +90,12 @@ export default function NewItemPage() {
             <option value="other">Other</option>
           </select>
 
-          <div className="muted">Profit: {profit}</div>
+          <div className="muted">
+            Profit: {profit.toLocaleString()}
+          </div>
 
-          <button className="primary" disabled={loading} type="submit">
-            {loading ? "Saving..." : "Save item"}
+          <button className="primary" disabled={loading}>
+            {loading ? "Saving…" : "Save item"}
           </button>
 
           {err && <div className="muted">{err}</div>}
