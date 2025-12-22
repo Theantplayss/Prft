@@ -23,7 +23,7 @@ export default function ItemsPage() {
   const router = useRouter();
   const { authReady, uid } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
-
+const [lastDeleted, setLastDeleted] = useState<any | null>(null);
   useEffect(() => {
     if (!authReady) return;
     if (!uid) router.replace("/login");
@@ -47,6 +47,20 @@ export default function ItemsPage() {
     () => items.reduce((s, i) => s + (i.profit || 0), 0),
     [items]
   );
+  async function onDelete(it: any) {
+  if (!confirm("Delete this item?")) return;
+
+  // Save it for undo
+  setLastDeleted({ ...it });
+
+  // Delete from Firestore
+  await deleteDoc(doc(db, "items", it.id));
+
+  // Clear undo after 5 seconds
+  setTimeout(() => {
+    setLastDeleted(null);
+  }, 5000);
+}
 
   if (!authReady) return <main className="container">Loading…</main>;
   if (!uid) return null;
@@ -92,13 +106,15 @@ export default function ItemsPage() {
                 <a href={`/items/${it.id}/edit`}>
                   <button>Edit</button>
                 </a>
-
-                <button
-                  className="danger"
-                  onClick={() => deleteDoc(doc(db, "items", it.id))}
-                >
-                  Delete
-                </button>
+<button
+  className="danger"
+  onClick={() => {
+    if (!confirm("Delete this item? This can only be undone for 5 Seconds.")) return;
+    deleteDoc(doc(db, "items", it.id));
+  }}
+>
+  Delete
+</button>
               </div>
             </div>
           </div>
