@@ -13,9 +13,9 @@ export default function NewItemPage() {
   const [name, setName] = useState("");
   const [buy, setBuy] = useState("");
   const [sell, setSell] = useState("");
-  const [qty, setQty] = useState("1");
-  const [shippingCost, setShippingCost] = useState("0");
-  const [platformFee, setPlatformFee] = useState("0");
+  const [qty, setQty] = useState("");
+  const [shippingCost, setShippingCost] = useState("");
+  const [platformFee, setPlatformFee] = useState("");
   const [platform, setPlatform] = useState("ebay");
 
   const [err, setErr] = useState<string | null>(null);
@@ -79,9 +79,32 @@ export default function NewItemPage() {
           <input placeholder="Buy price" inputMode="decimal" value={buy} onChange={(e) => setBuy(e.target.value)} />
           <input placeholder="Sell price" inputMode="decimal" value={sell} onChange={(e) => setSell(e.target.value)} />
 
-          <input placeholder="Quantity" inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value)} />
-          <input placeholder="Shipping cost" inputMode="decimal" value={shippingCost} onChange={(e) => setShippingCost(e.target.value)} />
-          <input placeholder="Platform fee" inputMode="decimal" value={platformFee} onChange={(e) => setPlatformFee(e.target.value)} />
+         <div className="stack">
+  <label className="muted">Quantity</label>
+  <input
+    inputMode="numeric"
+    value={qty}
+    onChange={(e) => setQty(e.target.value)}
+  />
+</div>
+
+<div className="stack">
+  <label className="muted">Shipping cost</label>
+  <input
+    inputMode="decimal"
+    value={shippingCost}
+    onChange={(e) => setShippingCost(e.target.value)}
+  />
+</div>
+
+<div className="stack">
+  <label className="muted">Platform fee</label>
+  <input
+    inputMode="decimal"
+    value={platformFee}
+    onChange={(e) => setPlatformFee(e.target.value)}
+  />
+</div>
 
           <select value={platform} onChange={(e) => setPlatform(e.target.value)}>
             <option value="ebay">eBay</option>
