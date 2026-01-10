@@ -6,6 +6,28 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/useAuth";
 
+const PLATFORM_FEES: Record<string, number> = {
+  ebay: 0.1325,
+  goat: 0.12,
+  stockx: 0.125,
+  facebook: 0.05,
+  offerup: 0.129,
+};
+
+function estimateShipping(sell: string) {
+  const s = Number(sell || 0);
+  if (s >= 300) return 25;
+  if (s >= 150) return 15;
+  if (s >= 75) return 10;
+  return 6;
+}
+
+function estimatePlatformFee(platform: string, sell: string) {
+  const s = Number(sell || 0);
+  const rate = PLATFORM_FEES[platform] ?? 0;
+  return Math.round(s * rate);
+}
+
 export default function NewItemPage() {
   const router = useRouter();
   const { authReady, uid } = useAuth();
@@ -13,10 +35,15 @@ export default function NewItemPage() {
   const [name, setName] = useState("");
   const [buy, setBuy] = useState("");
   const [sell, setSell] = useState("");
-  const [qty, setQty] = useState("");
+  const [qty, setQty] = useState("1");
+
+  // Start blank; we’ll auto-fill unless user edits
   const [shippingCost, setShippingCost] = useState("");
   const [platformFee, setPlatformFee] = useState("");
   const [platform, setPlatform] = useState("ebay");
+
+  const [shippingTouched, setShippingTouched] = useState(false);
+  const [feeTouched, setFeeTouched] = useState(false);
 
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -25,6 +52,18 @@ export default function NewItemPage() {
     if (!authReady) return;
     if (!uid) router.replace("/login");
   }, [authReady, uid, router]);
+
+  // ✅ Reliable auto-fill: includes touched flags in deps
+  useEffect(() => {
+    if (!sell) return; // don’t guess until they enter a sell price
+
+    if (!shippingTouched) {
+      setShippingCost(String(estimateShipping(sell)));
+    }
+    if (!feeTouched) {
+      setPlatformFee(String(estimatePlatformFee(platform, sell)));
+    }
+  }, [sell, platform, shippingTouched, feeTouched]);
 
   const profit = useMemo(() => {
     const b = Number(buy || 0);
@@ -79,51 +118,47 @@ export default function NewItemPage() {
           <input placeholder="Buy price" inputMode="decimal" value={buy} onChange={(e) => setBuy(e.target.value)} />
           <input placeholder="Sell price" inputMode="decimal" value={sell} onChange={(e) => setSell(e.target.value)} />
 
-         <div className="stack">
-  <label className="muted">Quantity</label>
-  <input
-    inputMode="numeric"
-    value={qty}
-    onChange={(e) => setQty(e.target.value)}
-  />
-</div>
+          <div className="stack">
+            <label className="muted">Quantity</label>
+            <input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value)} />
+          </div>
 
-<div className="stack">
-  <label className="muted">Shipping cost</label>
-  <input
-    inputMode="decimal"
-    value={shippingCost}
-    onChange={(e) => setShippingCost(e.target.value)}
-  />
-</div>
+          <div className="stack">
+            <label className="muted">Shipping cost (auto)</label>
+            <input
+              inputMode="decimal"
+              value={shippingCost}
+              onChange={(e) => {
+                setShippingTouched(true);
+                setShippingCost(e.target.value);
+              }}
+            />
+          </div>
 
-<div className="stack">
-  <label className="muted">Platform fee</label>
-  <input
-    inputMode="decimal"
-    value={platformFee}
-    onChange={(e) => setPlatformFee(e.target.value)}
-  />
-</div>
+          <div className="stack">
+            <label className="muted">Platform fee (auto)</label>
+            <input
+              inputMode="decimal"
+              value={platformFee}
+              onChange={(e) => {
+                setFeeTouched(true);
+                setPlatformFee(e.target.value);
+              }}
+            />
+          </div>
 
           <select value={platform} onChange={(e) => setPlatform(e.target.value)}>
             <option value="ebay">eBay</option>
+            <option value="goat">GOAT</option>
+            <option value="stockx">StockX</option>
             <option value="facebook">Facebook</option>
             <option value="offerup">OfferUp</option>
-            <option value="other">Other</option>
           </select>
 
-          <div
-  style={{
-    fontWeight: 900,
-    fontSize: 18,
-    color: profit >= 0 ? "#35d07f" : "#ff6b6b",
-  }}
->
-  Profit: {profit >= 0 ? "+" : ""}
-  {profit.toLocaleString()}
-</div>
-
+          <div style={{ fontWeight: 900, fontSize: 18, color: profit >= 0 ? "#35d07f" : "#ff6b6b" }}>
+            Profit: {profit >= 0 ? "+" : ""}
+            {profit.toLocaleString()}
+          </div>
 
           <button className="primary" disabled={loading}>
             {loading ? "Saving…" : "Save item"}
