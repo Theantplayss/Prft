@@ -19,6 +19,7 @@ export default function EditItemPage() {
   const [qty, setQty] = useState("1");
   const [shippingCost, setShippingCost] = useState("");
   const [platformFee, setPlatformFee] = useState("");
+  const [extraFees, setExtraFees] = useState(""); // ✅ NEW
   const [platform, setPlatform] = useState("ebay");
 
   const [err, setErr] = useState<string | null>(null);
@@ -30,7 +31,6 @@ export default function EditItemPage() {
     if (!uid) router.replace("/login");
   }, [authReady, uid, router]);
 
-  // ✅ Load item ONCE, then show the form
   useEffect(() => {
     if (!authReady || !uid) return;
 
@@ -59,6 +59,7 @@ export default function EditItemPage() {
         setQty(String(data.qty ?? 1));
         setShippingCost(String(data.shippingCost ?? 0));
         setPlatformFee(String(data.platformFee ?? 0));
+        setExtraFees(String(data.extraFees ?? 0)); // ✅ NEW
         setPlatform(data.platform ?? "ebay");
 
         setLoaded(true);
@@ -75,8 +76,9 @@ export default function EditItemPage() {
     const q = Number(qty || 1);
     const ship = Number(shippingCost || 0);
     const fee = Number(platformFee || 0);
-    return (s - b) * q - ship - fee;
-  }, [buy, sell, qty, shippingCost, platformFee]);
+    const extra = Number(extraFees || 0);
+    return (s - b) * q - ship - fee - extra;
+  }, [buy, sell, qty, shippingCost, platformFee, extraFees]);
 
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
@@ -95,6 +97,7 @@ export default function EditItemPage() {
         qty: Number(qty || 1),
         shippingCost: Number(shippingCost || 0),
         platformFee: Number(platformFee || 0),
+        extraFees: Number(extraFees || 0), // ✅ NEW
         platform,
         profit,
         updatedAt: serverTimestamp(),
@@ -115,7 +118,14 @@ export default function EditItemPage() {
   return (
     <main className="container hero">
       <div className="card" style={{ maxWidth: 520, margin: "0 auto" }}>
-        <h1>Edit item</h1>
+        <div className="row">
+          <h1 style={{ margin: 0 }}>Edit item</h1>
+          <button type="button" onClick={() => router.replace("/items")}>
+            Cancel
+          </button>
+        </div>
+
+        <div style={{ height: 12 }} />
 
         <form onSubmit={onSave} className="stack">
           <input value={name} onChange={(e) => setName(e.target.value)} />
@@ -138,6 +148,11 @@ export default function EditItemPage() {
             <input inputMode="decimal" value={platformFee} onChange={(e) => setPlatformFee(e.target.value)} />
           </div>
 
+          <div className="stack">
+            <label className="muted">Extra fees (promo, boosts, etc.)</label>
+            <input inputMode="decimal" value={extraFees} onChange={(e) => setExtraFees(e.target.value)} />
+          </div>
+
           <select value={platform} onChange={(e) => setPlatform(e.target.value)}>
             <option value="ebay">eBay</option>
             <option value="goat">GOAT</option>
@@ -151,9 +166,14 @@ export default function EditItemPage() {
             {profit.toLocaleString()}
           </div>
 
-          <button className="primary" disabled={loading}>
-            {loading ? "Saving…" : "Save changes"}
-          </button>
+          <div className="row" style={{ justifyContent: "flex-end" }}>
+            <button type="button" onClick={() => router.replace("/items")}>
+              Cancel
+            </button>
+            <button className="primary" disabled={loading} type="submit">
+              {loading ? "Saving…" : "Save changes"}
+            </button>
+          </div>
 
           {err && <div className="muted">{err}</div>}
         </form>

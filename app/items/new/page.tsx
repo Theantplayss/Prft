@@ -37,9 +37,9 @@ export default function NewItemPage() {
   const [sell, setSell] = useState("");
   const [qty, setQty] = useState("1");
 
-  // Start blank; we’ll auto-fill unless user edits
   const [shippingCost, setShippingCost] = useState("");
   const [platformFee, setPlatformFee] = useState("");
+  const [extraFees, setExtraFees] = useState(""); // ✅ NEW
   const [platform, setPlatform] = useState("ebay");
 
   const [shippingTouched, setShippingTouched] = useState(false);
@@ -53,16 +53,11 @@ export default function NewItemPage() {
     if (!uid) router.replace("/login");
   }, [authReady, uid, router]);
 
-  // ✅ Reliable auto-fill: includes touched flags in deps
   useEffect(() => {
-    if (!sell) return; // don’t guess until they enter a sell price
+    if (!sell) return;
 
-    if (!shippingTouched) {
-      setShippingCost(String(estimateShipping(sell)));
-    }
-    if (!feeTouched) {
-      setPlatformFee(String(estimatePlatformFee(platform, sell)));
-    }
+    if (!shippingTouched) setShippingCost(String(estimateShipping(sell)));
+    if (!feeTouched) setPlatformFee(String(estimatePlatformFee(platform, sell)));
   }, [sell, platform, shippingTouched, feeTouched]);
 
   const profit = useMemo(() => {
@@ -71,8 +66,9 @@ export default function NewItemPage() {
     const q = Number(qty || 1);
     const ship = Number(shippingCost || 0);
     const fee = Number(platformFee || 0);
-    return (s - b) * q - ship - fee;
-  }, [buy, sell, qty, shippingCost, platformFee]);
+    const extra = Number(extraFees || 0);
+    return (s - b) * q - ship - fee - extra;
+  }, [buy, sell, qty, shippingCost, platformFee, extraFees]);
 
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
@@ -92,6 +88,7 @@ export default function NewItemPage() {
         qty: Number(qty || 1),
         shippingCost: Number(shippingCost || 0),
         platformFee: Number(platformFee || 0),
+        extraFees: Number(extraFees || 0), // ✅ NEW
         platform,
         profit,
         createdAt: serverTimestamp(),
@@ -111,7 +108,14 @@ export default function NewItemPage() {
   return (
     <main className="container hero">
       <div className="card" style={{ maxWidth: 520, margin: "0 auto" }}>
-        <h1>Add item</h1>
+        <div className="row">
+          <h1 style={{ margin: 0 }}>Add item</h1>
+          <button type="button" onClick={() => router.replace("/items")}>
+            Cancel
+          </button>
+        </div>
+
+        <div style={{ height: 12 }} />
 
         <form onSubmit={onSave} className="stack">
           <input placeholder="Item name" value={name} onChange={(e) => setName(e.target.value)} />
@@ -147,6 +151,16 @@ export default function NewItemPage() {
             />
           </div>
 
+          <div className="stack">
+            <label className="muted">Extra fees (promo, boosts, etc.)</label>
+            <input
+              inputMode="decimal"
+              value={extraFees}
+              onChange={(e) => setExtraFees(e.target.value)}
+              placeholder="0"
+            />
+          </div>
+
           <select value={platform} onChange={(e) => setPlatform(e.target.value)}>
             <option value="ebay">eBay</option>
             <option value="goat">GOAT</option>
@@ -160,9 +174,14 @@ export default function NewItemPage() {
             {profit.toLocaleString()}
           </div>
 
-          <button className="primary" disabled={loading}>
-            {loading ? "Saving…" : "Save item"}
-          </button>
+          <div className="row" style={{ justifyContent: "flex-end" }}>
+            <button type="button" onClick={() => router.replace("/items")}>
+              Cancel
+            </button>
+            <button className="primary" disabled={loading} type="submit">
+              {loading ? "Saving…" : "Save item"}
+            </button>
+          </div>
 
           {err && <div className="muted">{err}</div>}
         </form>
