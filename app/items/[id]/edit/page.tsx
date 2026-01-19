@@ -19,8 +19,9 @@ export default function EditItemPage() {
   const [qty, setQty] = useState("1");
   const [shippingCost, setShippingCost] = useState("");
   const [platformFee, setPlatformFee] = useState("");
-  const [extraFees, setExtraFees] = useState(""); // ✅ NEW
+  const [extraFees, setExtraFees] = useState("");
   const [platform, setPlatform] = useState("ebay");
+  const [status, setStatus] = useState<"listed" | "sold">("listed");
 
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -59,8 +60,9 @@ export default function EditItemPage() {
         setQty(String(data.qty ?? 1));
         setShippingCost(String(data.shippingCost ?? 0));
         setPlatformFee(String(data.platformFee ?? 0));
-        setExtraFees(String(data.extraFees ?? 0)); // ✅ NEW
+        setExtraFees(String(data.extraFees ?? 0));
         setPlatform(data.platform ?? "ebay");
+        setStatus((data.status ?? "listed") as any); // ✅ NEW (default for old items)
 
         setLoaded(true);
       } catch (e: any) {
@@ -97,8 +99,9 @@ export default function EditItemPage() {
         qty: Number(qty || 1),
         shippingCost: Number(shippingCost || 0),
         platformFee: Number(platformFee || 0),
-        extraFees: Number(extraFees || 0), // ✅ NEW
+        extraFees: Number(extraFees || 0),
         platform,
+        status, // ✅ NEW
         profit,
         updatedAt: serverTimestamp(),
       });
@@ -132,6 +135,14 @@ export default function EditItemPage() {
 
           <input placeholder="Buy price" inputMode="decimal" value={buy} onChange={(e) => setBuy(e.target.value)} />
           <input placeholder="Sell price" inputMode="decimal" value={sell} onChange={(e) => setSell(e.target.value)} />
+
+          <div className="stack">
+            <label className="muted">Status</label>
+            <select value={status} onChange={(e) => setStatus(e.target.value as any)}>
+              <option value="listed">Listed</option>
+              <option value="sold">Sold</option>
+            </select>
+          </div>
 
           <div className="stack">
             <label className="muted">Quantity</label>
