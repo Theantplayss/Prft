@@ -165,16 +165,33 @@ const filteredItems = useMemo(() => {
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    fontWeight: 900,
-                    fontSize: 20,
-                    color: profit >= 0 ? "#35d07f" : "#ff6b6b",
-                  }}
-                >
-                  {profit >= 0 ? "+" : ""}
-                  {profit.toLocaleString()}
-                </div>
+            <div
+  className="tooltip"
+  style={{
+    fontWeight: 900,
+    fontSize: 20,
+    color: profit >= 0 ? "#35d07f" : "#ff6b6b",
+  }}
+>
+  {profit >= 0 ? "+" : ""}
+  {profit.toLocaleString()}
+
+  <div className="tooltip-panel">
+    <div>Buy: {(it.buy ?? 0).toLocaleString()}</div>
+    <div>Sell: {(it.sell ?? 0).toLocaleString()}</div>
+    <div>Shipping: {(it.shippingCost ?? 0).toLocaleString()}</div>
+    <div>Platform fee: {(it.platformFee ?? 0).toLocaleString()}</div>
+    <div>Extra fees: {(it.extraFees ?? 0).toLocaleString()}</div>
+    <hr style={{ opacity: 0.2, margin: "6px 0" }} />
+    <div>
+      <strong>
+        Net: {profit >= 0 ? "+" : ""}
+        {profit.toLocaleString()}
+      </strong>
+    </div>
+  </div>
+</div>
+
               </div>
 
               <div className="muted" style={{ marginTop: 8 }}>

@@ -72,3 +72,29 @@ button:hover{ background:rgba(255,255,255,.08); }
 .primary:hover {
   background: #6a92ff;
 }
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-panel {
+  position: absolute;
+  bottom: 130%;
+  right: 0;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: all 0.15s ease;
+  z-index: 50;
+}
+
+.tooltip:hover .tooltip-panel {
+  opacity: 1;
+  transform: translateY(0);
+}
