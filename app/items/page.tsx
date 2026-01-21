@@ -44,6 +44,11 @@ export default function ItemsPage() {
 
   const [items, setItems] = useState<Item[]>([]);
   const [lastDeleted, setLastDeleted] = useState<Item | null>(null);
+const [filter, setFilter] = useState<"all" | "listed" | "sold">("all");
+const filteredItems = useMemo(() => {
+  if (filter === "all") return items;
+  return items.filter((it) => (it.status ?? "listed") === filter);
+}, [items, filter]);
 
   useEffect(() => {
     if (!authReady) return;
@@ -137,9 +142,14 @@ export default function ItemsPage() {
         Total sold profit: {totalSoldProfit >= 0 ? "+" : ""}
         {totalSoldProfit.toLocaleString()}
       </div>
+<div className="row" style={{ gap: 8, marginBottom: 12 }}>
+  <button onClick={() => setFilter("all")}>All</button>
+  <button onClick={() => setFilter("listed")}>Listed</button>
+  <button onClick={() => setFilter("sold")}>Sold</button>
+</div>
 
       <div className="stack">
-        {items.map((it) => {
+        {filteredItems.map((it) => {
           const status = (it.status ?? "listed") as "listed" | "sold";
           const profit = Number(it.profit || 0);
 
