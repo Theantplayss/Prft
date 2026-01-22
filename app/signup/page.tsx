@@ -29,6 +29,7 @@ export default function SignupPage() {
 
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
+router.replace("/dashboard");
 
       // user profile doc (requires rules for /users/{uid})
       await setDoc(doc(db, "users", cred.user.uid), {

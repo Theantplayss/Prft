@@ -18,7 +18,7 @@ export default function LoginPage() {
   // If already logged in, leave login
   useEffect(() => {
     if (!authReady) return;
-    if (uid) router.replace("/items");
+    if (uid) router.replace("/dashboard");
   }, [authReady, uid, router]);
 
   async function onLogin(e: React.FormEvent) {
@@ -28,7 +28,7 @@ export default function LoginPage() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/items");
+      router.replace("/dashboard");
     } catch (e: any) {
       setErr(e?.code ? `${e.code}: ${e.message}` : "Login failed");
     } finally {
