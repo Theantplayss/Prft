@@ -38,7 +38,7 @@ router.replace("/dashboard");
         createdAt: serverTimestamp(),
       });
 
-      router.replace("/items");
+      router.replace("/dashboard");
     } catch (e: any) {
       setErr(e?.code ? `${e.code}: ${e.message}` : "Signup failed");
     } finally {
