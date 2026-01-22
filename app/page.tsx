@@ -1,22 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { signOut } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/useAuth";
 
-type Item = {
-  id: string;
-  name?: string;
-  profit?: number;
-  status?: "listed" | "sold";
-};
-
-function PublicHome() {
+export default function Page() {
   const router = useRouter();
+  const { authReady, uid } = useAuth();
 
+  // If logged in, go straight to the app
+  useEffect(() => {
+    if (!authReady) return;
+    if (uid) router.replace("/items");
+  }, [authReady, uid, router]);
+
+  if (!authReady) return <main className="container">Loading…</main>;
+  if (uid) return <main className="container">Loading…</main>;
+
+  // Public landing page (not logged in)
   return (
     <main className="container hero">
       <div
@@ -25,16 +26,16 @@ function PublicHome() {
           maxWidth: 980,
           margin: "0 auto",
           padding: 28,
-          background: "linear-gradient(135deg, rgba(59,130,246,0.18), rgba(255,255,255,0.04))",
+          background:
+            "linear-gradient(135deg, rgba(59,130,246,0.18), rgba(255,255,255,0.04))",
           border: "1px solid rgba(255,255,255,0.10)",
         }}
       >
         <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontWeight: 900, fontSize: 22, letterSpacing: 0.2 }}>Prft</div>
-
+          <div style={{ fontWeight: 900, fontSize: 22 }}>Prft</div>
           <div className="row" style={{ gap: 8 }}>
             <button onClick={() => router.push("/login")}>Log in</button>
-            <button className="primary" onClick={() => router.push("/login")}>
+            <button className="primary" onClick={() => router.push("/signup")}>
               Sign up
             </button>
           </div>
@@ -53,14 +54,14 @@ function PublicHome() {
           <div style={{ height: 3, width: 90, background: "#3b82f6", borderRadius: 999 }} />
 
           <p className="muted" style={{ fontSize: 16, marginTop: 14 }}>
-            Add items, auto-estimate fees, mark <strong>sold vs listed</strong>, and keep totals accurate.
+            Add items, estimate fees, mark <strong>sold vs listed</strong>, and keep totals accurate.
           </p>
 
           <div className="row" style={{ gap: 10, flexWrap: "wrap", marginTop: 14 }}>
-            <button className="primary" onClick={() => router.push("/login")}>
+            <button className="primary" onClick={() => router.push("/signup")}>
               Get started
             </button>
-            <button onClick={() => router.push("/login")}>See dashboard</button>
+            <button onClick={() => router.push("/login")}>Log in</button>
           </div>
         </div>
 
@@ -74,7 +75,7 @@ function PublicHome() {
 
           <div className="card" style={{ minWidth: 260, flex: 1, background: "rgba(255,255,255,0.05)" }}>
             <div style={{ fontWeight: 900 }}>Fees included</div>
-            <div className="muted">Shipping, platform fees, promo/extra fees.</div>
+            <div className="muted">Shipping, platform, and extra fees.</div>
           </div>
 
           <div className="card" style={{ minWidth: 260, flex: 1, background: "rgba(255,255,255,0.05)" }}>
@@ -82,36 +83,7 @@ function PublicHome() {
             <div className="muted">Add → edit → mark sold → done.</div>
           </div>
         </div>
-
-        <div style={{ height: 18 }} />
-
-        <div className="card" style={{ background: "rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.08)" }}>
-          <div style={{ fontWeight: 900, marginBottom: 10 }}>How it works</div>
-          <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
-            <div style={{ minWidth: 220, flex: 1 }}>
-              <div style={{ fontWeight: 900 }}>1) Add an item</div>
-              <div className="muted">Buy, sell, platform, qty, fees.</div>
-            </div>
-            <div style={{ minWidth: 220, flex: 1 }}>
-              <div style={{ fontWeight: 900 }}>2) Track status</div>
-              <div className="muted">Listed items don’t inflate totals.</div>
-            </div>
-            <div style={{ minWidth: 220, flex: 1 }}>
-              <div style={{ fontWeight: 900 }}>3) Mark sold</div>
-              <div className="muted">Totals update instantly.</div>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ height: 16 }} />
-
-        <div className="muted" style={{ fontSize: 13, textAlign: "center" }}>
-          Built for resellers who want clean, accurate numbers.
-        </div>
       </div>
     </main>
   );
-}
-export default function Page() {
-  return <div />;
 }
