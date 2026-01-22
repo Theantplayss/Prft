@@ -76,6 +76,22 @@ export default function DashboardPage() {
       </div>
 
       <div style={{ height: 18 }} />
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: 12,
+  }}
+>
+  <div className="card">Total sold profit…</div>
+  <div className="card">Sold items…</div>
+  <div className="card">Listed items…</div>
+  <div className="card">Potential profit…</div>
+  <div className="card" style={{ minHeight: 260 }}>
+</div>
+
+</div>
+
 
       <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
         <div className="card" style={{ minWidth: 220 }}>
