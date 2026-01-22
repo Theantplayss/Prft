@@ -111,7 +111,7 @@ const filteredItems = useMemo(() => {
       <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
         <div className="row" style={{ gap: 8 }}>
           <button type="button" onClick={() => router.back()}>Back</button>
-          <button type="button" onClick={() => router.push("/")}>Home</button>
+          <button type="button" onClick={() => router.push("/dashboard")}>Home</button>
         </div>
 
         <div className="row" style={{ gap: 8 }}>
