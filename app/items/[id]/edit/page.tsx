@@ -20,6 +20,8 @@ export default function EditItemPage() {
   const [shippingCost, setShippingCost] = useState("");
   const [platformFee, setPlatformFee] = useState("");
   const [extraFees, setExtraFees] = useState("");
+  const [partnerName, setPartnerName] = useState("");
+  const [yourSplitPct, setYourSplitPct] = useState(100);
   const [platform, setPlatform] = useState("ebay");
   const [status, setStatus] = useState<"listed" | "sold">("listed");
 
@@ -63,6 +65,9 @@ export default function EditItemPage() {
         setExtraFees(String(data.extraFees ?? 0));
         setPlatform(data.platform ?? "ebay");
         setStatus((data.status ?? "listed") as any); // ✅ NEW (default for old items)
+        setPartnerName(data.partnerName || "");
+        setYourSplitPct(data.yourSplitPct ?? 100);
+
 
         setLoaded(true);
       } catch (e: any) {
@@ -103,6 +108,8 @@ export default function EditItemPage() {
         platform,
         status, // ✅ NEW
         profit,
+        partnerName: partnerName || "",
+        yourSplitPct: yourSplitPct || 100,
         updatedAt: serverTimestamp(),
       });
 
@@ -163,6 +170,25 @@ export default function EditItemPage() {
             <label className="muted">Extra fees (promo, boosts, etc.)</label>
             <input inputMode="decimal" value={extraFees} onChange={(e) => setExtraFees(e.target.value)} />
           </div>
+          <div className="card">
+  <div className="muted">Profit split</div>
+
+  <input
+    placeholder="Partner name (optional)"
+    value={partnerName}
+    onChange={(e) => setPartnerName(e.target.value)}
+  />
+
+  <input
+    type="number"
+    min={0}
+    max={100}
+    placeholder="Your % (default 100)"
+    value={yourSplitPct}
+    onChange={(e) => setYourSplitPct(Number(e.target.value))}
+  />
+</div>
+
 
           <select value={platform} onChange={(e) => setPlatform(e.target.value)}>
             <option value="ebay">eBay</option>
@@ -189,6 +215,24 @@ export default function EditItemPage() {
           {err && <div className="muted">{err}</div>}
         </form>
       </div>
+      <div className="card">
+  <div className="muted">Profit split</div>
+
+  <input
+    placeholder="Partner name (optional)"
+    value={partnerName}
+    onChange={(e) => setPartnerName(e.target.value)}
+  />
+
+  <input
+    type="number"
+    min={0}
+    max={100}
+    placeholder="Your % (default 100)"
+    value={yourSplitPct}
+    onChange={(e) => setYourSplitPct(Number(e.target.value))}
+  />
+</div>
     </main>
   );
 }

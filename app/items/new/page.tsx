@@ -40,6 +40,8 @@ export default function NewItemPage() {
   const [shippingCost, setShippingCost] = useState("");
   const [platformFee, setPlatformFee] = useState("");
   const [extraFees, setExtraFees] = useState("");
+  const [partnerName, setPartnerName] = useState("");
+const [yourSplitPct, setYourSplitPct] = useState(100);
   const [platform, setPlatform] = useState("ebay");
 
   const [status, setStatus] = useState<"listed" | "sold">("listed");
@@ -93,6 +95,8 @@ export default function NewItemPage() {
         platform,
         status, // ✅ NEW
         profit,
+        partnerName:partnerName || "",
+        yourSplitPct: yourSplitPct || 100,
         createdAt: serverTimestamp(),
       });
 
@@ -191,6 +195,25 @@ export default function NewItemPage() {
           {err && <div className="muted">{err}</div>}
         </form>
       </div>
+      <div className="card">
+  <div className="muted">Profit split</div>
+
+  <input
+    placeholder="Partner name (optional)"
+    value={partnerName}
+    onChange={(e) => setPartnerName(e.target.value)}
+  />
+
+  <input
+    type="number"
+    min={0}
+    max={100}
+    placeholder="Your % (default 100)"
+    value={yourSplitPct}
+    onChange={(e) => setYourSplitPct(Number(e.target.value))}
+  />
+</div>
+
     </main>
   );
 }

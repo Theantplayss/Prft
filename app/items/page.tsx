@@ -35,6 +35,7 @@ type Item = {
   profit?: number;
 
   status?: "listed" | "sold"; // missing on older items
+  yourSplitPct?: number;
   createdAt?: any;
 };
 
@@ -151,8 +152,13 @@ const filteredItems = useMemo(() => {
 
       <div className="stack">
         {filteredItems.map((it) => {
+  const net = Number(it.profit || 0);
+  const yourPct = it.yourSplitPct ?? 100;
+  const yourCut = net * (yourPct / 100);
+
           const status = (it.status ?? "listed") as "listed" | "sold";
           const profit = Number(it.profit || 0);
+      
 
           return (
             <div key={it.id} className="card">
@@ -165,6 +171,21 @@ const filteredItems = useMemo(() => {
                     Status: <strong>{status}</strong>
                   </div>
                 </div>
+                <div style={{ textAlign: "right" }}>
+  <div style={{ fontWeight: 900 }}>
+    {net >= 0 ? "+" : ""}
+    {net}
+  </div>
+
+  {yourPct < 100 && (
+    <div className="muted">
+      Your cut ({yourPct}%): {yourCut >= 0 ? "+" : ""}
+      {yourCut.toFixed(2)}
+    </div>
+  )}
+</div>
+
+
 
             <div
   className="tooltip"
