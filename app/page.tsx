@@ -112,3 +112,6 @@ function PublicHome() {
     </main>
   );
 }
+export default function Page() {
+  return <div />;
+}
