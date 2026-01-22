@@ -9,8 +9,22 @@ import { useAuth } from "@/lib/useAuth";
 type Item = {
   id: string;
   name?: string;
+
+  // money fields (from your older version)
+  buy?: number;
+  sell?: number;
+  shippingCost?: number;
+  platformFee?: number;
+  extraFees?: number;
+  qty?: number;
+
+  // derived/stored profit (you already have this)
   profit?: number;
+
   status?: "listed" | "sold";
+
+  // split
+  partnerName?: string;
   yourSplitPct?: number;
 };
 
@@ -37,13 +51,11 @@ export default function ItemsPage() {
     });
   }, [authReady, uid]);
 
-  // Filtered items
   const filteredItems = useMemo(() => {
     if (filter === "all") return items;
     return items.filter((it) => (it.status ?? "listed") === filter);
   }, [items, filter]);
 
-  // Total sold profit (FULL deal profit, not split)
   const totalSoldProfit = useMemo(() => {
     return items
       .filter((it) => (it.status ?? "listed") === "sold")
@@ -56,10 +68,7 @@ export default function ItemsPage() {
   return (
     <main className="container hero">
       {/* Header */}
-      <div
-        className="row"
-        style={{ justifyContent: "space-between", alignItems: "center" }}
-      >
+      <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
         <h1 style={{ margin: 0 }}>Items</h1>
         <button onClick={() => router.push("/dashboard")}>Home</button>
       </div>
@@ -78,15 +87,15 @@ export default function ItemsPage() {
         {totalSoldProfit.toLocaleString()}
       </div>
 
-      {/* Filters */}
-      <div className="row" style={{ gap: 8, marginBottom: 12 }}>
+      {/* Filters + Add */}
+      <div className="row" style={{ gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         <button onClick={() => setFilter("all")}>All</button>
         <button onClick={() => setFilter("listed")}>Listed</button>
         <button onClick={() => setFilter("sold")}>Sold</button>
-        <button
-          className="primary"
-          onClick={() => router.push("/items/new")}
-        >
+
+        <div style={{ flex: 1 }} />
+
+        <button className="primary" onClick={() => router.push("/items/new")}>
           + Add item
         </button>
       </div>
@@ -98,22 +107,28 @@ export default function ItemsPage() {
         ) : (
           filteredItems.map((it) => {
             const status = (it.status ?? "listed") as "listed" | "sold";
+
+            const buy = Number(it.buy || 0);
+            const sell = Number(it.sell || 0);
+            const shipping = Number(it.shippingCost || 0);
+            const platform = Number(it.platformFee || 0);
+            const extra = Number(it.extraFees || 0);
+            const qty = Number(it.qty || 1);
+
             const net = Number(it.profit || 0);
+
             const yourPct = it.yourSplitPct ?? 100;
             const yourCut = net * (yourPct / 100);
+            const partnerName = (it.partnerName ?? "").trim();
 
             return (
               <div key={it.id} className="card">
-                <div
-                  className="row"
-                  style={{ justifyContent: "space-between", alignItems: "center" }}
-                >
+                <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
-                    <div style={{ fontSize: 22, fontWeight: 900 }}>
-                      {it.name || "Untitled"}
-                    </div>
+                    <div style={{ fontSize: 22, fontWeight: 900 }}>{it.name || "Untitled"}</div>
                     <div className="muted">
                       Status: <strong>{status}</strong>
+                      {qty !== 1 ? <> · Qty: <strong>{qty}</strong></> : null}
                     </div>
                   </div>
 
@@ -125,7 +140,7 @@ export default function ItemsPage() {
 
                     {yourPct < 100 && (
                       <div className="muted">
-                        Your cut ({yourPct}%):{" "}
+                        Your cut ({yourPct}%{partnerName ? ` w/ ${partnerName}` : ""}):{" "}
                         {yourCut >= 0 ? "+" : ""}
                         {yourCut.toFixed(2)}
                       </div>
@@ -135,10 +150,19 @@ export default function ItemsPage() {
 
                 <div style={{ height: 10 }} />
 
+                {/* Fee breakdown (this is what you’re missing) */}
+                <div className="row" style={{ gap: 14, flexWrap: "wrap" }}>
+                  <div className="muted">Buy: {buy.toLocaleString()}</div>
+                  <div className="muted">Sell: {sell.toLocaleString()}</div>
+                  <div className="muted">Shipping: {shipping.toLocaleString()}</div>
+                  <div className="muted">Platform: {platform.toLocaleString()}</div>
+                  <div className="muted">Extra: {extra.toLocaleString()}</div>
+                </div>
+
+                <div style={{ height: 12 }} />
+
                 <div className="row" style={{ gap: 8 }}>
-                  <button onClick={() => router.push(`/items/${it.id}/edit`)}>
-                    Edit
-                  </button>
+                  <button onClick={() => router.push(`/items/${it.id}/edit`)}>Edit</button>
                 </div>
               </div>
             );
