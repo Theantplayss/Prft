@@ -1,42 +1,41 @@
-
-
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  addDoc,
   collection,
   deleteDoc,
   doc,
   onSnapshot,
+  orderBy,
   query,
+  serverTimestamp,
   updateDoc,
   where,
-  setDoc,
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
-
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/useAuth";
 
 type Item = {
   id: string;
   uid?: string;
-
   name?: string;
-  status?: "listed" | "sold";
 
-  // your existing fields
+  buy?: number;
+  sell?: number;
   qty?: number;
-  shippingCost?: number; // "Ship"
-  platformFee?: number;  // "Fee"
-  extraFees?: number;    // "Extra"
-  platform?: string;     // "Platform: ebay"
-  profit?: number;       // net profit (already stored in your app)
 
-  // splits
-  partnerName?: string;  // "Rusy"
-  yourSplitPct?: number; // 70, default 100
+  shippingCost?: number;
+  platformFee?: number;
+  extraFees?: number;
+
+  platform?: string;
+  profit?: number;
+
+  status?: "listed" | "sold"; // missing on older items
+  createdAt?: any;
 };
 
 export default function ItemsPage() {
@@ -44,89 +43,79 @@ export default function ItemsPage() {
   const { authReady, uid } = useAuth();
 
   const [items, setItems] = useState<Item[]>([]);
-  const [filter, setFilter] = useState<"all" | "listed" | "sold">("all");
+  const [lastDeleted, setLastDeleted] = useState<Item | null>(null);
+const [filter, setFilter] = useState<"all" | "listed" | "sold">("all");
+const filteredItems = useMemo(() => {
+  if (filter === "all") return items;
+  return items.filter((it) => (it.status ?? "listed") === filter);
+}, [items, filter]);
 
-  // Undo delete
-  const [lastDeleted, setLastDeleted] = useState<{
-    id: string;
-    data: any;
-  } | null>(null);
-
-  // Redirect if not logged in
   useEffect(() => {
     if (!authReady) return;
     if (!uid) router.replace("/login");
   }, [authReady, uid, router]);
 
-  // Load items
   useEffect(() => {
     if (!authReady || !uid) return;
 
-    const q = query(collection(db, "items"), where("uid", "==", uid));
+    const q = query(
+      collection(db, "items"),
+      where("uid", "==", uid),
+      orderBy("createdAt", "desc")
+    );
+
     return onSnapshot(q, (snap) => {
       setItems(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
     });
   }, [authReady, uid]);
 
-  const filteredItems = useMemo(() => {
-    if (filter === "all") return items;
-    return items.filter((it) => (it.status ?? "listed") === filter);
-  }, [items, filter]);
-
   const totalSoldProfit = useMemo(() => {
-    return items
-      .filter((it) => (it.status ?? "listed") === "sold")
-      .reduce((sum, it) => sum + Number(it.profit || 0), 0);
+    return items.reduce((sum, it) => {
+      const status = (it.status ?? "listed") as "listed" | "sold";
+      const p = Number(it.profit || 0);
+      return status === "sold" ? sum + p : sum;
+    }, 0);
   }, [items]);
-
-  const yourSoldProfit = useMemo(() => {
-    return items
-      .filter((it) => (it.status ?? "listed") === "sold")
-      .reduce((sum, it) => {
-        const net = Number(it.profit || 0);
-        const pct = it.yourSplitPct ?? 100;
-        return sum + net * (pct / 100);
-      }, 0);
-  }, [items]);
-
-  async function onToggleStatus(it: Item) {
-    const next: "listed" | "sold" = (it.status ?? "listed") === "sold" ? "listed" : "sold";
-    await updateDoc(doc(db, "items", it.id), { status: next });
-  }
 
   async function onDelete(it: Item) {
     if (!confirm("Delete this item?")) return;
 
-    // Save for undo (store raw data except id)
-    const { id, ...rest } = it as any;
-    setLastDeleted({ id, data: rest });
-
+    setLastDeleted({ ...it });
     await deleteDoc(doc(db, "items", it.id));
-
-    // Clear undo after 6 seconds
-    setTimeout(() => setLastDeleted(null), 6000);
+    setTimeout(() => setLastDeleted(null), 5000);
   }
 
-  async function onUndoDelete() {
+  async function onUndo() {
     if (!lastDeleted) return;
-    // Restore the document with the same ID
-    await setDoc(doc(db, "items", lastDeleted.id), lastDeleted.data);
+    const { id, ...data } = lastDeleted;
+
+    await addDoc(collection(db, "items"), {
+      ...data,
+      createdAt: serverTimestamp(),
+    });
+
     setLastDeleted(null);
+  }
+
+  async function toggleStatus(it: Item) {
+    const current = (it.status ?? "listed") as "listed" | "sold";
+    const next = current === "sold" ? "listed" : "sold";
+    await updateDoc(doc(db, "items", it.id), { status: next, updatedAt: serverTimestamp() });
   }
 
   if (!authReady) return <main className="container">Loading…</main>;
   if (!uid) return null;
 
   return (
-    <main className="container hero">
-      {/* Top bar */}
+    <main className="container">
       <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-        <div className="row" style={{ gap: 10 }}>
-          <button onClick={() => router.back()}>Back</button>
-          <button onClick={() => router.push("/dashboard")}>Home</button>
+        <div className="row" style={{ gap: 8 }}>
+          <button type="button" onClick={() => router.back()}>Back</button>
+          <button type="button" onClick={() => router.push("/dashboard")}>Home</button>
+
         </div>
 
-        <div className="row" style={{ gap: 10 }}>
+        <div className="row" style={{ gap: 8 }}>
           <button className="primary" onClick={() => router.push("/items/new")}>
             + Add item
           </button>
@@ -142,122 +131,87 @@ export default function ItemsPage() {
         </div>
       </div>
 
-      <div style={{ height: 14 }} />
+      <h1 style={{ marginTop: 12 }}>Items</h1>
 
-      <div style={{ fontSize: 22, fontWeight: 900 }}>Items</div>
-
-      <div style={{ height: 6 }} />
-
-      {/* Totals */}
       <div
         style={{
           fontWeight: 900,
-          fontSize: 22,
+          marginBottom: 16,
           color: totalSoldProfit >= 0 ? "#35d07f" : "#ff6b6b",
         }}
       >
         Total sold profit: {totalSoldProfit >= 0 ? "+" : ""}
         {totalSoldProfit.toLocaleString()}
       </div>
+<div className="row" style={{ gap: 8, marginBottom: 12 }}>
+  <button onClick={() => setFilter("all")}>All</button>
+  <button onClick={() => setFilter("listed")}>Listed</button>
+  <button onClick={() => setFilter("sold")}>Sold</button>
+</div>
 
-      <div className="muted" style={{ marginTop: 6 }}>
-        Your sold profit: {yourSoldProfit >= 0 ? "+" : ""}
-        {yourSoldProfit.toFixed(2)}
-      </div>
-
-      {/* Undo banner */}
-      {lastDeleted && (
-        <div className="card" style={{ marginTop: 12 }}>
-          <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <strong>Deleted.</strong> You can undo for a few seconds.
-            </div>
-            <button onClick={onUndoDelete}>Undo</button>
-          </div>
-        </div>
-      )}
-
-      <div style={{ height: 14 }} />
-
-      {/* Filters (spaced like your screenshot) */}
-      <div
-        className="row"
-        style={{
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 14,
-        }}
-      >
-        <button onClick={() => setFilter("all")}>All</button>
-        <button onClick={() => setFilter("listed")}>Listed</button>
-        <button onClick={() => setFilter("sold")}>Sold</button>
-      </div>
-
-      {/* List */}
       <div className="stack">
         {filteredItems.map((it) => {
           const status = (it.status ?? "listed") as "listed" | "sold";
-          const qty = Number(it.qty || 1);
-          const ship = Number(it.shippingCost || 0);
-          const fee = Number(it.platformFee || 0);
-          const extra = Number(it.extraFees || 0);
-          const platform = (it.platform || "").trim();
-
-          const net = Number(it.profit || 0);
-
-          const yourPct = it.yourSplitPct ?? 100;
-          const yourCut = net * (yourPct / 100);
-          const partnerName = (it.partnerName ?? "").trim();
-          const partnerCut = net - yourCut;
+          const profit = Number(it.profit || 0);
 
           return (
             <div key={it.id} className="card">
-              <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div className="row" style={{ justifyContent: "space-between" }}>
                 <div>
-                  <div style={{ fontSize: 40, fontWeight: 900, lineHeight: 1.05 }}>
+                  <div style={{ fontSize: 22, fontWeight: 900 }}>
                     {it.name || "Untitled"}
                   </div>
-
-                  <div className="muted" style={{ marginTop: 6, fontSize: 22 }}>
+                  <div className="muted">
                     Status: <strong>{status}</strong>
                   </div>
-
-                  <div className="muted" style={{ marginTop: 16, fontSize: 20 }}>
-                    Qty: {qty} · Ship: {ship} · Fee: {fee} · Extra: {extra}
-                  </div>
-
-                  <div className="muted" style={{ marginTop: 10, fontSize: 20 }}>
-                    Platform: {platform || "—"}
-                  </div>
-
-                  {/* Split display (added) */}
-                  {yourPct < 100 && (
-                    <div className="muted" style={{ marginTop: 10, fontSize: 18 }}>
-                      Split: You {yourPct}%{partnerName ? ` / ${partnerName} ${100 - yourPct}%` : ` / Partner ${100 - yourPct}%`}
-                      {" · "}
-                      Your cut: {yourCut >= 0 ? "+" : ""}
-                      {yourCut.toFixed(2)}
-                      {" · "}
-                      {partnerName ? `${partnerName}` : "Partner"}: {partnerCut >= 0 ? "+" : ""}
-                      {partnerCut.toFixed(2)}
-                    </div>
-                  )}
                 </div>
 
-                {/* Profit on right */}
-                <div style={{ fontSize: 28, fontWeight: 900, color: net >= 0 ? "#35d07f" : "#ff6b6b" }}>
-                  {net >= 0 ? "+" : ""}
-                  {net.toLocaleString()}
-                </div>
+            <div
+  className="tooltip"
+  style={{
+    fontWeight: 900,
+    fontSize: 20,
+    color: profit >= 0 ? "#35d07f" : "#ff6b6b",
+  }}
+>
+  {profit >= 0 ? "+" : ""}
+  {profit.toLocaleString()}
+
+  <div className="tooltip-panel">
+    <div>Buy: {(it.buy ?? 0).toLocaleString()}</div>
+    <div>Sell: {(it.sell ?? 0).toLocaleString()}</div>
+    <div>Shipping: {(it.shippingCost ?? 0).toLocaleString()}</div>
+    <div>Platform fee: {(it.platformFee ?? 0).toLocaleString()}</div>
+    <div>Extra fees: {(it.extraFees ?? 0).toLocaleString()}</div>
+    <hr style={{ opacity: 0.2, margin: "6px 0" }} />
+    <div>
+      <strong>
+        Net: {profit >= 0 ? "+" : ""}
+        {profit.toLocaleString()}
+      </strong>
+    </div>
+  </div>
+</div>
+
               </div>
 
-              <div style={{ height: 18 }} />
+              <div className="muted" style={{ marginTop: 8 }}>
+                Qty: {it.qty ?? 1} · Ship: {(it.shippingCost ?? 0).toLocaleString()}
+                · Fee: {(it.platformFee ?? 0).toLocaleString()}
+                · Extra: {(it.extraFees ?? 0).toLocaleString()}
+              </div>
 
-              <div className="row" style={{ justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
-                <button onClick={() => onToggleStatus(it)}>
+              <div className="muted">Platform: {it.platform ?? "—"}</div>
+
+              <div className="row" style={{ justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
+                <button onClick={() => toggleStatus(it)}>
                   {status === "sold" ? "Mark listed" : "Mark sold"}
                 </button>
-                <button onClick={() => router.push(`/items/${it.id}/edit`)}>Edit</button>
+
+                <button onClick={() => router.push(`/items/${it.id}/edit`)}>
+                  Edit
+                </button>
+
                 <button className="danger" onClick={() => onDelete(it)}>
                   Delete
                 </button>
@@ -266,6 +220,25 @@ export default function ItemsPage() {
           );
         })}
       </div>
+
+      {lastDeleted && (
+        <div
+          className="card"
+          style={{
+            position: "fixed",
+            bottom: 20,
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex",
+            gap: 12,
+            alignItems: "center",
+          }}
+        >
+          <span className="muted">Item deleted</span>
+          <button onClick={onUndo}>Undo</button>
+        </div>
+      )}
     </main>
   );
 }
+
