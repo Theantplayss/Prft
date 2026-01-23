@@ -218,14 +218,8 @@ const [yourSplitPct, setYourSplitPct] = useState(100);
         </form>
       </div>
 
-  <input
-    type="number"
-    min={0}
-    max={100}
-    placeholder="Your % (default 100)"
-    value={yourSplitPct}
-    onChange={(e) => setYourSplitPct(Number(e.target.value))}
-  />
+  
+
 
 
     </main>

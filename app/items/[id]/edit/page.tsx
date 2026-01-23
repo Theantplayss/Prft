@@ -191,24 +191,7 @@ export default function EditItemPage() {
   </div>
 </div>
           </div>
-          <div className="card">
-  <div className="muted">Profit split</div>
-
-  <input
-    placeholder="Partner name (optional)"
-    value={partnerName}
-    onChange={(e) => setPartnerName(e.target.value)}
-  />
-
-  <input
-    type="number"
-    min={0}
-    max={100}
-    placeholder="Your % (default 100)"
-    value={yourSplitPct}
-    onChange={(e) => setYourSplitPct(Number(e.target.value))}
-  />
-</div>
+        
 
 
           <select value={platform} onChange={(e) => setPlatform(e.target.value)}>
@@ -240,14 +223,7 @@ export default function EditItemPage() {
 
 
 
-  <input
-    type="number"
-    min={0}
-    max={100}
-    placeholder="Your % (default 100)"
-    value={yourSplitPct}
-    onChange={(e) => setYourSplitPct(Number(e.target.value))}
-  />
+ 
     </main>
   );
 }
