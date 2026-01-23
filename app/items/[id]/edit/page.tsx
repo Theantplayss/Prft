@@ -169,6 +169,27 @@ export default function EditItemPage() {
           <div className="stack">
             <label className="muted">Extra fees (promo, boosts, etc.)</label>
             <input inputMode="decimal" value={extraFees} onChange={(e) => setExtraFees(e.target.value)} />
+            <div className="card" style={{ marginTop: 12 }}>
+  <div className="muted" style={{ marginBottom: 8 }}>Profit split</div>
+
+  <div className="row" style={{ gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+    <input
+      placeholder="Partner name (optional)"
+      value={partnerName}
+      onChange={(e) => setPartnerName(e.target.value)}
+      style={{ flex: 1, minWidth: 220 }}
+    />
+
+    <input
+      type="number"
+      min={0}
+      max={100}
+      value={yourSplitPct}
+      onChange={(e) => setYourSplitPct(Number(e.target.value))}
+      style={{ width: 90 }}
+    />
+  </div>
+</div>
           </div>
           <div className="card">
   <div className="muted">Profit split</div>
@@ -215,8 +236,7 @@ export default function EditItemPage() {
           {err && <div className="muted">{err}</div>}
         </form>
       </div>
-      <div className="card">
-  <div className="muted">Profit split</div>
+      
 
   <input
     placeholder="Partner name (optional)"
@@ -232,7 +252,6 @@ export default function EditItemPage() {
     value={yourSplitPct}
     onChange={(e) => setYourSplitPct(Number(e.target.value))}
   />
-</div>
     </main>
   );
 }
