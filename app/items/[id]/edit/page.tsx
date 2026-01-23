@@ -238,11 +238,7 @@ export default function EditItemPage() {
       </div>
       
 
-  <input
-    placeholder="Partner name (optional)"
-    value={partnerName}
-    onChange={(e) => setPartnerName(e.target.value)}
-  />
+
 
   <input
     type="number"
